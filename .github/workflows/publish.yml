@@ -29,11 +29,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+          scope: "@impulselab"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10.15.0
+
+      - name: Verify npm auth
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN}" ]; then
+            echo "NPM token is missing. Set repository secret NPM_TOKEN with publish permissions." >&2
+            exit 1
+          fi
+          npm whoami --registry=https://registry.npmjs.org || { echo "npm auth failed. Check token scope." >&2; exit 1; }
 
       - name: Install
         run: pnpm install --frozen-lockfile
@@ -83,14 +95,14 @@ jobs:
 
       - name: Publish @impulselab/realtime (lib)
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           cd lib
           pnpm publish --access public --no-git-checks
 
       - name: Publish @impulselab/realtime-service (service)
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           cd service
           pnpm publish --access public --no-git-checks
