@@ -1,0 +1,35 @@
+{
+  "name": "@impulselab/realtime",
+  "version": "0.0.0",
+  "description": "Minimalist end-to-end type-safe realtime client library",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p .",
+    "dev": "tsc -p . --watch",
+    "typecheck": "tsc -p . --noEmit",
+    "clean": "rm -rf dist .tsbuildinfo"
+  },
+  "keywords": [
+    "realtime",
+    "sse",
+    "server-sent-events",
+    "pubsub",
+    "typescript"
+  ],
+  "author": "Impulse",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

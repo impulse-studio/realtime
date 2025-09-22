@@ -1,0 +1,38 @@
+{
+  "name": "@impulselab/realtime-service",
+  "version": "0.0.0",
+  "description": "Hostable SSE broker and CLI for realtime communication",
+  "type": "module",
+  "main": "./dist/server.js",
+  "bin": {
+    "impulse-realtime": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p .",
+    "dev": "tsx src/server.ts",
+    "start": "node dist/server.js",
+    "typecheck": "tsc -p . --noEmit",
+    "clean": "rm -rf dist .tsbuildinfo"
+  },
+  "keywords": [
+    "realtime",
+    "sse",
+    "server-sent-events",
+    "broker",
+    "cli"
+  ],
+  "author": "Impulse",
+  "license": "MIT",
+  "dependencies": {
+    "zod": "^3.23.8",
+    "commander": "^12.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "tsx": "^4.0.0",
+    "@types/node": "^22.0.0"
+  }
+}

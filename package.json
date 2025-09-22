@@ -1,0 +1,24 @@
+{
+  "name": "@impulselab/realtime-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "lib",
+    "service",
+    "demo"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -p . --noEmit",
+    "clean": "rm -rf node_modules/.cache && rm -rf **/dist && rm -rf **/.tsbuildinfo",
+    "dev:service": "pnpm --filter @impulselab/realtime-service dev",
+    "dev:lib": "pnpm --filter @impulselab/realtime dev",
+    "dev:demo": "pnpm --filter demo dev"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "tsx": "^4.0.0"
+  },
+  "packageManager": "pnpm@10.15.0"
+}
