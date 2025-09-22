@@ -30,7 +30,7 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Setup pnpm (action)
+      - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10.15.0
@@ -79,7 +79,7 @@ jobs:
           git push
 
       - name: Build workspace
-        run: pnpm -r build
+        run: pnpm -r --filter="!demo" build
 
       - name: Publish @impulselab/realtime (lib)
         env:

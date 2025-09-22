@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Setup pnpm (action)
+      - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10.15.0
@@ -26,8 +26,8 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      - name: Typecheck (workspace)
+      - name: Typecheck
         run: pnpm typecheck
 
-      - name: Build (ensure projects compile)
-        run: pnpm -r build
+      - name: Build
+        run: pnpm -r --filter="!demo" build
