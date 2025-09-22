@@ -29,8 +29,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          registry-url: "https://registry.npmjs.org"
-          cache: "pnpm"
 
       - name: Setup pnpm (action)
         uses: pnpm/action-setup@v4
@@ -109,7 +107,7 @@ jobs:
           name: Release v${{ steps.bump.outputs.service_version }}
           body: |
             Release v${{ steps.bump.outputs.service_version }}
-            
+
             **Package Versions:**
             - @impulselab/realtime (lib): v${{ steps.bump.outputs.lib_version }}
             - @impulselab/realtime-service (service): v${{ steps.bump.outputs.service_version }}
