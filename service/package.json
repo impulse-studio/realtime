@@ -1,6 +1,6 @@
 {
   "name": "@impulselab/realtime-service",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Hostable SSE broker and CLI for realtime communication",
   "type": "module",
   "main": "./dist/server.js",
