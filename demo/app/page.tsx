@@ -29,7 +29,7 @@ export default async function HomePage() {
   const initialCount = Number(await redis.get("demo:likes")) || 0;
 
   return (
-    <main className="border-x border-gray-700 min-h-screen mx-auto w-[90vw] max-w-4xl py-[10vh]">
+    <main className="border-x border-gray-700 min-h-screen mx-auto w-[90vw] max-w-4xl pt-[10vh]">
       <hr className="absolute left-0 right-0 border-gray-700" />
       <header className="flex flex-col gap-4 items-center text-center justify-center h-[80vh]">
         <h1 className="text-5xl font-bold leading-tight">
@@ -251,7 +251,7 @@ export default async function HomePage() {
       </h2>
       <hr className="absolute left-0 right-0 border-gray-700" />
 
-      <section className="flex flex-col items-center justify-center py-12 gap-4">
+      <section className="flex flex-col items-center justify-center pt-24 pb-36 gap-4">
         <p className="text-gray-400 text-center max-w-2xl">
           If you're missing something,
           <br />
@@ -269,7 +269,7 @@ export default async function HomePage() {
             Open in GitHub
           </Link>
           <Link
-            href="https://discord.gg/JtH33fFeV3"
+            href="https://discord.gg/bBWXedJwWN"
             target="_blank"
             className="bg-[#5865F2] text-white px-6 py-3 rounded-2xl flex items-center gap-2 font-medium hover:bg-[hsl(235,86%,60%)] relative cursor-pointer"
           >
@@ -279,6 +279,49 @@ export default async function HomePage() {
           </Link>
         </div>
       </section>
+
+      <hr className="absolute left-0 right-0 border-gray-700" />
+      <footer className="flex items-center p-8 gap-4">
+        <span className="text-gray-400 me-auto">
+          Made with ❤️ by{" "}
+          <Link
+            href="https://impulselab.ai"
+            target="_top"
+            className="text-amber-600 hover:text-amber-400"
+          >
+            Impulse Lab
+          </Link>
+        </span>
+
+        <Link
+          href="https://github.com/impulse-studio/realtime"
+          target="_blank"
+          className="text-amber-400 hover:text-amber-600"
+        >
+          GitHub
+        </Link>
+        <Link
+          href="https://discord.gg/bBWXedJwWN"
+          target="_blank"
+          className="text-amber-400 hover:text-amber-600"
+        >
+          Discord
+        </Link>
+        <Link
+          href="https://x.com/impulselab_ai"
+          target="_blank"
+          className="text-amber-400 hover:text-amber-600"
+        >
+          X
+        </Link>
+        <Link
+          href="https://linkedin.com/company/impulselab"
+          target="_blank"
+          className="text-amber-400 hover:text-amber-600"
+        >
+          LinkedIn
+        </Link>
+      </footer>
     </main>
   );
 }
