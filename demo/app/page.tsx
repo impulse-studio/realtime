@@ -118,7 +118,7 @@ export default async function HomePage() {
           <h3 className="text-xl font-mono text-gray-300">
             2. Subscribe on your client
           </h3>
-          <p className="text-gray-400">First let's install the package</p>
+          <p className="text-gray-400">First let&rsquo;s install the package</p>
           <Command
             displayText={gs2Command}
             copyText={gs2Command}
@@ -253,7 +253,7 @@ export default async function HomePage() {
 
       <section className="flex flex-col items-center justify-center pt-24 pb-36 gap-4">
         <p className="text-gray-400 text-center max-w-2xl">
-          If you're missing something,
+          If you&rsquo;re missing something,
           <br />
           feel free to open an issue on the GitHub repository or discuss it on
           the Discord server.
