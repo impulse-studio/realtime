@@ -51,6 +51,16 @@ export async function handleBroadcast(req: IncomingMessage, res: ServerResponse,
           continue;
         }
 
+        if (data.audience?.tokens) {
+          const audienceTokens = Array.isArray(data.audience.tokens) 
+            ? data.audience.tokens 
+            : [data.audience.tokens];
+          
+          if (!connection.token || !audienceTokens.includes(connection.token)) {
+            continue;
+          }
+        }
+
         try {
           writeSSEMessage(connection.res, message);
           sent++;

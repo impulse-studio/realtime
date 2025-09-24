@@ -1,6 +1,6 @@
 export interface ServerClientOptions {
   serviceUrl: string;
-  token: string;
+  token?: string;
 }
 
 export interface ServerClient<RT> {

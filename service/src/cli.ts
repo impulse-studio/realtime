@@ -15,7 +15,7 @@ async function main() {
 
   const options = program.opts();
 
-  const port = options.port ? parseInt(options.port, 10) : 3200;
+  const port = options.port ? parseInt(options.port, 10) : undefined;
   const secret = options.secret;
 
   try {

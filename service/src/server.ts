@@ -5,7 +5,7 @@ import { handleBroadcast } from './routes/post.js';
 import { clearAllConnections } from './broker/connections.js';
 
 export function startServer(options: ServerOptions = {}): Promise<{ port: number; close: () => Promise<void> }> {
-  const { port = 3000, secret } = options;
+  const { port = 8080, secret } = options;
 
   return new Promise((resolve, reject) => {
     const server = createServer((req, res) => {

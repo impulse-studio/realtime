@@ -16,7 +16,7 @@ Docker:
 docker run \
   -p 8080:8080 \
   -e REALTIME_SECRET="your-server-secret" \
-  impulse/realtime
+  ghcr.io/impulse-studio/realtime-service
 ```
 
 Endpoints: `GET /` (SSE stream), `POST /` (push).

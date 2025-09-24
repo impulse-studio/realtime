@@ -38,8 +38,8 @@ RUN npm prune --omit=dev
 COPY --from=builder /app/service/dist ./dist
 
 # Expose port and set default
-EXPOSE 3200
-ENV PORT=3200
+EXPOSE 8080
+ENV PORT=8080
 
 # Run the CLI
 CMD ["node", "dist/cli.js"]

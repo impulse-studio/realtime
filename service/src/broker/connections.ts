@@ -3,11 +3,11 @@ import { ConnectionsMap, ClientConnection } from './types.js';
 
 export const connections: ConnectionsMap = new Map();
 
-export function addConnection(channel: string, res: ServerResponse, topic?: string): void {
+export function addConnection(channel: string, res: ServerResponse, topic?: string, token?: string): void {
   if (!connections.has(channel)) {
     connections.set(channel, new Set());
   }
-  connections.get(channel)!.add({ res, topic });
+  connections.get(channel)!.add({ res, topic, token });
 }
 
 export function removeConnection(channel: string, res: ServerResponse): void {

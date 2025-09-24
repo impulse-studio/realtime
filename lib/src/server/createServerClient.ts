@@ -7,10 +7,6 @@ export function createServerClient<RT>(options: ServerClientOptions): ServerClie
     throw new Error('serviceUrl is required and must be a string');
   }
 
-  if (!token || typeof token !== 'string') {
-    throw new Error('token is required and must be a string');
-  }
-
   async function push<K extends keyof RT>(
     channel: K,
     payload: RT[K],
@@ -26,11 +22,13 @@ export function createServerClient<RT>(options: ServerClientOptions): ServerClie
       audience
     });
 
+
+
     const response = await fetch(serviceUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       },
       body
     });
@@ -52,7 +50,7 @@ export function createServerClient<RT>(options: ServerClientOptions): ServerClie
       throw new Error('events must be an array');
     }
 
-    const promises = events.map(event => 
+    const promises = events.map(event =>
       push(event.channel, event.payload, event.audience)
     );
 

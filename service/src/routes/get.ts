@@ -20,7 +20,7 @@ export function handleSSEConnection(req: IncomingMessage, res: ServerResponse): 
   
   writeSSEComment(res, `Connected to channel: ${channel}`);
 
-  addConnection(channel, res, topic || undefined);
+  addConnection(channel, res, topic || undefined, token || undefined);
 
   let heartbeatInterval: NodeJS.Timeout;
   
