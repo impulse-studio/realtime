@@ -14,7 +14,7 @@
     "dev:service": "pnpm --filter @impulselab/realtime-service dev",
     "dev:lib": "pnpm --filter @impulselab/realtime dev",
     "dev:demo": "pnpm --filter demo dev",
-    "prepare:demo": "pnpm --filter @impulselab/realtime build && pnpm --filter @impulselab/realtime-service build",
+    "prepare:demo": "pnpm --filter @impulselab/realtime build",
     "env:pull": "vercel env pull demo/.env"
   },
   "devDependencies": {
