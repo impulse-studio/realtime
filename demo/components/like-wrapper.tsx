@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getInitialLikes, incrementLikesAction } from "@/app/actions";
 import LikeButton from "./like-button";
 
 export default function LikeWrapper() {
@@ -11,7 +10,11 @@ export default function LikeWrapper() {
   useEffect(() => {
     const fetchInitialLikes = async () => {
       try {
-        const count = await getInitialLikes();
+        const response = await fetch('/api/likes');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const { count } = await response.json();
         setInitialCount(count);
       } catch (error) {
         console.error("Failed to fetch initial likes:", error);
@@ -24,13 +27,26 @@ export default function LikeWrapper() {
     fetchInitialLikes();
   }, []);
 
+  const handleLike = async () => {
+    try {
+      const response = await fetch('/api/likes', {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error("Failed to increment likes:", error);
+    }
+  };
+
   if (!isLoaded) {
     return (
-      <LikeButton initialCount={0} onLike={incrementLikesAction} />
+      <LikeButton initialCount={0} onLike={handleLike} />
     );
   }
 
   return (
-    <LikeButton initialCount={initialCount} onLike={incrementLikesAction} />
+    <LikeButton initialCount={initialCount} onLike={handleLike} />
   );
 }

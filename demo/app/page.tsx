@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   codeExampleToJsx,
   dockerCommand,
@@ -21,6 +22,48 @@ import Accordion from "@/components/accordion";
 import { RiDiscordFill, RiGithubFill } from "@remixicon/react";
 import Link from "next/link";
 import LikeWrapper from "@/components/like-wrapper";
+
+export const metadata: Metadata = {
+  title: "Type-safe live updates in minutes | Impulse Realtime",
+  description: "Zero-config SSE. Shared types. Simple client & server helpers.",
+  keywords: [
+    "Impulse Realtime",
+    "type-safe live updates",
+    "SSE",
+    "real-time API",
+    "shared types",
+  ],
+  alternates: {
+    canonical: "https://realtime.impulselab.ai",
+  },
+  openGraph: {
+    title: "Type-safe live updates in minutes | Impulse Realtime",
+    description:
+      "Zero-config SSE. Shared types. Simple client & server helpers.",
+    url: "https://realtime.impulselab.ai",
+    images: [
+      {
+        url: "/realtime-og.png",
+        width: 1200,
+        height: 630,
+        alt: "Type-safe live updates in minutes",
+      },
+    ],
+  },
+  twitter: {
+    title: "Type-safe live updates in minutes | Impulse Realtime",
+    description:
+      "Zero-config SSE. Shared types. Simple client & server helpers.",
+    images: [
+      {
+        url: "/realtime-og.png",
+        width: 1200,
+        height: 630,
+        alt: "Type-safe live updates in minutes",
+      },
+    ],
+  },
+};
 
 export default async function HomePage() {
   return (
