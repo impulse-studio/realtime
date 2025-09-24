@@ -98,7 +98,7 @@ export default async function HomePage() {
       </section>
 
       <h2 className="text-4xl font-bold mt-32 mb-8 w-full text-center">
-        Let's get started!
+        Let&rsquo;s get started!
       </h2>
       <hr className="absolute left-0 right-0 border-gray-700" />
 
@@ -159,9 +159,9 @@ export default async function HomePage() {
         </div>
 
         <div className="px-4 py-8 flex flex-col gap-4 border-b border-gray-700">
-          <h3 className="text-xl font-mono text-gray-300">4. You're done</h3>
+          <h3 className="text-xl font-mono text-gray-300">4. You&rsquo;re done</h3>
           <p className="text-gray-400">
-            Perfect! You're now free to add more events to your app.
+            Perfect! You&rsquo;re now free to add more events to your app.
           </p>
           <p className="text-gray-400">
             You may want more customizations, like authentication or topics.

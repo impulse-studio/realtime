@@ -4,8 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, Copy } from "lucide-react";
 
-const DOCKER_IMAGE = "ghcr.io/impulse-studio/realtime-service";
-
 const variants = {
   enter: { opacity: 0, y: 8 },
   center: { opacity: 1, y: 0 },
