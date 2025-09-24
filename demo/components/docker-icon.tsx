@@ -1,6 +1,7 @@
 export default function DockerIcon() {
   return (
     <svg
+      className="size-6 min-w-6 min-h-6"
       width="24"
       height="24"
       viewBox="0 0 64 64"

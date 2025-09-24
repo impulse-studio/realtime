@@ -1,6 +1,3 @@
-import LikeButton from "@/components/like-button";
-import { getRedis } from "@/lib/redis";
-import { incrementLikesAction } from "./actions";
 import {
   codeExampleToJsx,
   dockerCommand,
@@ -23,24 +20,22 @@ import { Terminal } from "lucide-react";
 import Accordion from "@/components/accordion";
 import { RiDiscordFill, RiGithubFill } from "@remixicon/react";
 import Link from "next/link";
+import LikeWrapper from "@/components/like-wrapper";
 
 export default async function HomePage() {
-  const redis = getRedis();
-  const initialCount = Number(await redis.get("demo:likes")) || 0;
-
   return (
     <main className="border-x border-gray-700 min-h-screen mx-auto w-[90vw] max-w-4xl pt-[10vh]">
       <hr className="absolute left-0 right-0 border-gray-700" />
       <header className="flex flex-col gap-4 items-center text-center justify-center h-[80vh]">
-        <h1 className="text-5xl font-bold leading-tight">
+        <h1 className="text-5xl font-bold leading-tight px-4">
           Type-safe live updates <br />
           in minutes
         </h1>
-        <p className="text-lg text-gray-500">
+        <p className="text-lg text-gray-500 px-4">
           Zero-config SSE. Shared types. Simple client & server helpers.
         </p>
 
-        <LikeButton initialCount={initialCount} onLike={incrementLikesAction} />
+        <LikeWrapper />
       </header>
 
       <hr className="absolute left-0 right-0 border-gray-700" />
@@ -97,7 +92,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <h2 className="text-4xl font-bold mt-32 mb-8 w-full text-center">
+      <h2 className="text-4xl font-bold mt-32 mb-8 w-full text-center px-4">
         Let&rsquo;s get started!
       </h2>
       <hr className="absolute left-0 right-0 border-gray-700" />
@@ -159,19 +154,21 @@ export default async function HomePage() {
         </div>
 
         <div className="px-4 py-8 flex flex-col gap-4 border-b border-gray-700">
-          <h3 className="text-xl font-mono text-gray-300">4. You&rsquo;re done</h3>
+          <h3 className="text-xl font-mono text-gray-300">
+            4. You&rsquo;re done
+          </h3>
           <p className="text-gray-400">
             Perfect! You&rsquo;re now free to add more events to your app.
           </p>
           <p className="text-gray-400">
             You may want more customizations, like authentication or topics.
             <br />
-            Follow the link below to learn more.
+            Follow the <code>Deep dive!</code> section below to learn more.
           </p>
         </div>
       </section>
 
-      <h2 className="text-4xl font-bold mt-32 mb-8 w-full text-center">
+      <h2 className="text-4xl font-bold mt-32 mb-8 w-full text-center px-4">
         Deep dive!
       </h2>
       <hr className="absolute left-0 right-0 border-gray-700" />
@@ -246,19 +243,19 @@ export default async function HomePage() {
         <hr className="w-full border-gray-700" />
       </section>
 
-      <h2 className="text-4xl font-bold mt-32 mb-8 w-full text-center">
+      <h2 className="text-4xl font-bold mt-32 mb-8 w-full text-center px-4">
         Missing something?
       </h2>
       <hr className="absolute left-0 right-0 border-gray-700" />
 
-      <section className="flex flex-col items-center justify-center pt-24 pb-36 gap-4">
+      <section className="flex flex-col items-center justify-center pt-24 pb-36 gap-4 px-4">
         <p className="text-gray-400 text-center max-w-2xl">
           If you&rsquo;re missing something,
           <br />
           feel free to open an issue on the GitHub repository or discuss it on
           the Discord server.
         </p>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap justify-center">
           <Link
             href="https://github.com/impulse-studio/realtime"
             target="_blank"
@@ -266,7 +263,7 @@ export default async function HomePage() {
           >
             <div className="absolute left-0.5 right-0.5 bottom-0.5 rounded-b-2xl bg-gradient-to-t pointer-events-none h-4 from-black to-transparent opacity-20" />
             <RiGithubFill />
-            Open in GitHub
+            <span className="text-nowrap">Open in GitHub</span>
           </Link>
           <Link
             href="https://discord.gg/bBWXedJwWN"
@@ -275,14 +272,14 @@ export default async function HomePage() {
           >
             <div className="absolute left-0.5 right-0.5 bottom-0.5 rounded-b-2xl bg-gradient-to-t pointer-events-none h-4 from-black to-transparent opacity-20" />
             <RiDiscordFill />
-            Open in Discord
+            <span className="text-nowrap">Open in Discord</span>
           </Link>
         </div>
       </section>
 
       <hr className="absolute left-0 right-0 border-gray-700" />
-      <footer className="flex items-center p-8 gap-4">
-        <span className="text-gray-400 me-auto">
+      <footer className="flex items-center p-8 gap-4 justify-between flex-col sm:flex-row">
+        <span className="text-gray-400">
           Made with ❤️ by{" "}
           <Link
             href="https://impulselab.ai"
@@ -293,34 +290,36 @@ export default async function HomePage() {
           </Link>
         </span>
 
-        <Link
-          href="https://github.com/impulse-studio/realtime"
-          target="_blank"
-          className="text-amber-400 hover:text-amber-600"
-        >
-          GitHub
-        </Link>
-        <Link
-          href="https://discord.gg/bBWXedJwWN"
-          target="_blank"
-          className="text-amber-400 hover:text-amber-600"
-        >
-          Discord
-        </Link>
-        <Link
-          href="https://x.com/impulselab_ai"
-          target="_blank"
-          className="text-amber-400 hover:text-amber-600"
-        >
-          X
-        </Link>
-        <Link
-          href="https://linkedin.com/company/impulselab"
-          target="_blank"
-          className="text-amber-400 hover:text-amber-600"
-        >
-          LinkedIn
-        </Link>
+        <div className="flex items-center gap-4 flex-wrap justify-center">
+          <Link
+            href="https://github.com/impulse-studio/realtime"
+            target="_blank"
+            className="text-amber-400 hover:text-amber-600"
+          >
+            GitHub
+          </Link>
+          <Link
+            href="https://discord.gg/bBWXedJwWN"
+            target="_blank"
+            className="text-amber-400 hover:text-amber-600"
+          >
+            Discord
+          </Link>
+          <Link
+            href="https://x.com/impulselab_ai"
+            target="_blank"
+            className="text-amber-400 hover:text-amber-600"
+          >
+            X
+          </Link>
+          <Link
+            href="https://linkedin.com/company/impulselab"
+            target="_blank"
+            className="text-amber-400 hover:text-amber-600"
+          >
+            LinkedIn
+          </Link>
+        </div>
       </footer>
     </main>
   );
