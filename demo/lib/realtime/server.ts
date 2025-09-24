@@ -10,10 +10,6 @@ export function getServerRealtime() {
     throw new Error('NEXT_PUBLIC_REALTIME_URL environment variable is required')
   }
 
-  if (!process.env.REALTIME_SECRET) {
-    throw new Error('REALTIME_SECRET environment variable is required')
-  }
-
   if (!globalThis.__realtimeServerClient) {
     globalThis.__realtimeServerClient = createServerClient<RealtimeTypes>({
       serviceUrl: process.env.NEXT_PUBLIC_REALTIME_URL,
