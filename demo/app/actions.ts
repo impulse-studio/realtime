@@ -16,9 +16,3 @@ export async function incrementLikesAction(): Promise<void> {
     throw error
   }
 }
-
-export async function getInitialLikes(): Promise<number> {
-  const redis = getRedis()
-  const count = await redis.get('demo:likes')
-  return count ? Number(count) : 0
-}

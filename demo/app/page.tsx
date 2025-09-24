@@ -22,6 +22,7 @@ import Accordion from "@/components/accordion";
 import { RiDiscordFill, RiGithubFill } from "@remixicon/react";
 import Link from "next/link";
 import LikeWrapper from "@/components/like-wrapper";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Type-safe live updates in minutes | Impulse Realtime",

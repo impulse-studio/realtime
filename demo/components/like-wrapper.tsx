@@ -1,52 +1,16 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import LikeButton from "./like-button";
+import { incrementLikesAction } from "@/app/actions";
+import { getRedis } from "@/lib/redis";
+import { connection } from "next/server";
 
-export default function LikeWrapper() {
-  const [initialCount, setInitialCount] = useState(0);
-  const [isLoaded, setIsLoaded] = useState(false);
+export default async function LikeWrapper() {
+  await connection();
 
-  useEffect(() => {
-    const fetchInitialLikes = async () => {
-      try {
-        const response = await fetch('/api/likes');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const { count } = await response.json();
-        setInitialCount(count);
-      } catch (error) {
-        console.error("Failed to fetch initial likes:", error);
-        setInitialCount(0);
-      } finally {
-        setIsLoaded(true);
-      }
-    };
-
-    fetchInitialLikes();
-  }, []);
-
-  const handleLike = async () => {
-    try {
-      const response = await fetch('/api/likes', {
-        method: 'POST',
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-    } catch (error) {
-      console.error("Failed to increment likes:", error);
-    }
-  };
-
-  if (!isLoaded) {
-    return (
-      <LikeButton initialCount={0} onLike={handleLike} />
-    );
-  }
+  const redis = getRedis();
+  const count = await redis.get("demo:likes");
+  const initialCount = count ? parseInt(count, 10) : 0;
 
   return (
-    <LikeButton initialCount={initialCount} onLike={handleLike} />
+    <LikeButton initialCount={initialCount} onLike={incrementLikesAction} />
   );
 }
