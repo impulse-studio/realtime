@@ -15,7 +15,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p .",
+    "build": "pnpm --package=typescript dlx tsc -p .",
     "dev": "tsc -p . --watch",
     "typecheck": "tsc -p . --noEmit",
     "clean": "rm -rf dist .tsbuildinfo"

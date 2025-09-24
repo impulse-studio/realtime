@@ -11,7 +11,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p .",
+    "build": "pnpm --package=typescript dlx tsc -p .",
     "dev": "tsx src/server.ts",
     "start": "node dist/server.js",
     "typecheck": "tsc -p . --noEmit",
