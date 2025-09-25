@@ -1,6 +1,6 @@
 {
   "name": "@impulselab/realtime",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Minimalist end-to-end type-safe realtime client library",
   "type": "module",
   "main": "./dist/index.js",
