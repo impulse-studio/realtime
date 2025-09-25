@@ -269,6 +269,27 @@ export default async function HomePage() {
 
         <hr className="w-full border-gray-700" />
 
+        <Accordion title="AI Assistant Guide (llms.txt)">
+          <p className="text-gray-400">
+            Comprehensive documentation designed specifically for AI assistants
+            and IDE copilots is available in our <code>llms.txt</code> resource.
+            This guide includes detailed onboarding, setup instructions, usage
+            patterns, troubleshooting, and security best practices.
+          </p>
+          <p className="text-gray-400 mt-2">
+            Perfect for AI agents helping with installation, client/server
+            integration, authentication, deployment, testing, and debugging
+            realtime features.
+          </p>
+          <Command
+            displayText="https://realtime.impulselab.ai/llms.txt"
+            copyText="https://realtime.impulselab.ai/llms.txt"
+            icon={<Terminal />}
+          />
+        </Accordion>
+
+        <hr className="w-full border-gray-700" />
+
         <Accordion title="Deploy Service with Docker">
           <p className="text-gray-400">
             You can deploy the service with Docker by running the following

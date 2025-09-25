@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://realtime.impulselab.ai/sitemap.xml
+
+# /llms.txt documents usage for AI agents
+Allow: /llms.txt
