@@ -1,9 +1,5 @@
 export interface RealtimeClientOptions {
   serviceUrl: string;
-  retryMs?: {
-    min: number;
-    max: number;
-  };
 }
 
 export interface EventHandler<RT, K extends keyof RT> {

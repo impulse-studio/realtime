@@ -2,7 +2,7 @@ import type { RealtimeClient, RealtimeClientOptions, EventHandler } from './type
 import type { ChannelConnection } from '../internal/connections.js';
 
 export function createRealtimeClient<RT>(options: RealtimeClientOptions): RealtimeClient<RT> {
-  const { serviceUrl, retryMs = { min: 1000, max: 30000 } } = options;
+  const { serviceUrl } = options;
   const connections = new Map<keyof RT, ChannelConnection<RT, any>>();
 
   function subscribe<K extends keyof RT>(
@@ -23,7 +23,7 @@ export function createRealtimeClient<RT>(options: RealtimeClientOptions): Realti
     if (!connection) {
       const url = new URL(serviceUrl);
       url.searchParams.set('channel', channel as string);
-      
+
       if (subscribeOptions?.token) {
         url.searchParams.set('token', subscribeOptions.token);
       }

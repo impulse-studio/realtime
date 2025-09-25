@@ -54,6 +54,7 @@ pnpm add @impulselab/realtime
 ### Service Endpoints
 - `GET /` - SSE stream endpoint for client connections
 - `POST /` - Push API endpoint for server-side events
+Do not use the endpoints directly, always pass through the library
 
 ---
 
@@ -67,16 +68,16 @@ interface RealtimeTypes {
   // Basic events
   'user:online': { userId: string; username: string; timestamp: number }
   'user:offline': { userId: string; timestamp: number }
-  
+
   // Chat messages
-  'chat:message': { 
+  'chat:message': {
     id: string
     userId: string
     username: string
     message: string
     timestamp: number
   }
-  
+
   // Notifications
   'notification:new': {
     id: string
@@ -85,7 +86,7 @@ interface RealtimeTypes {
     message: string
     userId?: string
   }
-  
+
   // Live updates
   'document:updated': {
     documentId: string
@@ -93,7 +94,7 @@ interface RealtimeTypes {
     changes: any[]
     version: number
   }
-  
+
   // System events
   'system:maintenance': {
     scheduled: boolean
@@ -150,15 +151,15 @@ Use tokens for authenticated channels:
 // Subscribe with authentication token
 realtimeClient.subscribe('chat:message', (event) => {
   displayMessage(event.payload)
-}, { 
+}, {
   token: userAuthToken  // JWT or session token
 })
 
 // Subscribe to user-specific notifications
 realtimeClient.subscribe('notification:new', (event) => {
   showUserNotification(event.payload)
-}, { 
-  token: userAuthToken 
+}, {
+  token: userAuthToken
 })
 ```
 
@@ -172,7 +173,7 @@ realtimeClient.subscribe('chat:message', (event) => {
   if (event.topic === currentRoomId) {
     displayRoomMessage(event.payload)
   }
-}, { 
+}, {
   token: userAuthToken,
   topic: 'room-42'  // Room/group identifier
 })
@@ -214,30 +215,6 @@ useEffect(() => {
   const unsubscribe = realtimeClient.subscribe('user:online', handleUserOnline)
   return unsubscribe // Cleanup function
 }, [])
-```
-
-### Error Handling & Connection Management
-
-```typescript
-// Connection state monitoring
-realtimeClient.onConnectionState((state) => {
-  console.log('Connection state:', state) // 'connecting' | 'connected' | 'disconnected'
-  updateConnectionIndicator(state)
-})
-
-// Error handling
-realtimeClient.onError((error) => {
-  console.error('Realtime error:', error)
-  showConnectionError('Unable to receive live updates')
-})
-
-// Retry configuration
-const realtimeClient = createRealtimeClient<RealtimeTypes>({
-  serviceUrl: 'http://localhost:8080',
-  retryAttempts: 5,
-  retryDelay: 1000,
-  heartbeatInterval: 30000
-})
 ```
 
 ---
@@ -350,11 +327,7 @@ const events = [
   { channel: 'user:online', payload: { userId: '2', username: 'Bob', timestamp: Date.now() } }
 ] as const
 
-await Promise.all(
-  events.map(({ channel, payload }) => 
-    serverClient.push(channel, payload)
-  )
-)
+serverClient.pushMany(events)
 ```
 
 ### API Integration Examples
@@ -364,7 +337,7 @@ await Promise.all(
 app.post('/api/chat/send', authenticate, async (req, res) => {
   const { message, roomId } = req.body
   const { user } = req
-  
+
   // Save to database
   const chatMessage = await db.messages.create({
     userId: user.id,
@@ -372,7 +345,7 @@ app.post('/api/chat/send', authenticate, async (req, res) => {
     message,
     timestamp: new Date()
   })
-  
+
   // Broadcast to realtime subscribers
   await serverClient.push('chat:message', {
     id: chatMessage.id,
@@ -384,7 +357,7 @@ app.post('/api/chat/send', authenticate, async (req, res) => {
     topic: roomId,
     tokens: await getActiveRoomTokens(roomId)
   })
-  
+
   res.json(chatMessage)
 })
 
@@ -394,19 +367,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== 'POST') {
     return res.status(405).end()
   }
-  
+
   const { title, message, userIds } = req.body
-  
+
   // Get user tokens
   const tokens = await getUserTokens(userIds)
-  
+
   await serverClient.push('notification:new', {
     id: generateId(),
     type: 'info',
     title,
     message
   }, { tokens })
-  
+
   res.json({ success: true })
 }
 ```
@@ -423,33 +396,16 @@ REALTIME_SECRET=your-super-secure-secret-key
 
 # Optional
 PORT=8080
-HOST=0.0.0.0
-NODE_ENV=production
 
 # CORS (if needed)
 CORS_ORIGIN=https://yourdomain.com
 CORS_CREDENTIALS=true
-
-# Health checks
-HEALTH_CHECK_ENDPOINT=/health
-HEALTH_CHECK_TOKEN=optional-health-token
 ```
 
 ### Docker Deployment
 
-#### Production Dockerfile
-```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-RUN npx @impulselab/realtime-service
-EXPOSE 8080
-ENV NODE_ENV=production
-CMD ["npx", "@impulselab/realtime-service", "--port", "8080"]
-```
-
 #### Docker Compose
 ```yaml
-version: '3.8'
 services:
   realtime:
     image: ghcr.io/impulse-studio/realtime-service
@@ -459,147 +415,6 @@ services:
       - REALTIME_SECRET=your-secret-key
       - NODE_ENV=production
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-```
-
-### Kubernetes Deployment
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: impulse-realtime
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: impulse-realtime
-  template:
-    metadata:
-      labels:
-        app: impulse-realtime
-    spec:
-      containers:
-      - name: realtime
-        image: ghcr.io/impulse-studio/realtime-service
-        ports:
-        - containerPort: 8080
-        env:
-        - name: REALTIME_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: realtime-secret
-              key: secret
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "200m"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: impulse-realtime-service
-spec:
-  selector:
-    app: impulse-realtime
-  ports:
-    - port: 8080
-      targetPort: 8080
-  type: ClusterIP
-```
-
-### Scaling & Load Balancing
-
-#### Horizontal Scaling
-```bash
-# Scale with Docker Swarm
-docker service scale realtime-service=5
-
-# Scale with Kubernetes
-kubectl scale deployment impulse-realtime --replicas=5
-```
-
-#### Load Balancer Configuration (nginx)
-```nginx
-upstream realtime_backend {
-    server realtime1:8080;
-    server realtime2:8080;
-    server realtime3:8080;
-}
-
-server {
-    listen 80;
-    server_name realtime.yourdomain.com;
-    
-    location / {
-        proxy_pass http://realtime_backend;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-        
-        # SSE specific
-        proxy_buffering off;
-        proxy_cache off;
-    }
-}
-```
-
-### Monitoring & Logging
-
-#### Health Check Endpoint
-```bash
-curl http://localhost:8080/health
-# Response: {"status":"ok","uptime":12345,"connections":42}
-```
-
-#### Custom Monitoring
-```typescript
-// Monitor service health
-const monitorRealtime = async () => {
-  try {
-    const response = await fetch(`${process.env.REALTIME_SERVICE_URL}/health`)
-    const health = await response.json()
-    console.log('Realtime service health:', health)
-  } catch (error) {
-    console.error('Realtime service unavailable:', error)
-  }
-}
-
-setInterval(monitorRealtime, 30000) // Check every 30 seconds
-```
-
-#### Logging Configuration
-```javascript
-// Custom logging for service
-const winston = require('winston')
-
-const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.json(),
-  transports: [
-    new winston.transports.File({ filename: 'realtime-error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'realtime-combined.log' }),
-  ],
-})
-
-// Production logging
-if (process.env.NODE_ENV === 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.simple()
-  }))
-}
 ```
 
 ---
@@ -615,33 +430,29 @@ import { useEffect, useCallback, useRef } from 'react'
 import { createRealtimeClient } from '@impulselab/realtime'
 import type { RealtimeTypes } from '@/types/realtime'
 
+export const rc = createRealtimeClient<RealtimeTypes>({
+  serviceUrl: process.env.NEXT_PUBLIC_REALTIME_URL!
+});
+
 export function useRealtime<T extends keyof RealtimeTypes>(
   channel: T,
   handler: (event: { payload: RealtimeTypes[T], topic?: string }) => void,
   options?: { token?: string; topic?: string }
 ) {
-  const clientRef = useRef<ReturnType<typeof createRealtimeClient<RealtimeTypes>> | null>(null)
-  
   useEffect(() => {
-    if (!clientRef.current) {
-      clientRef.current = createRealtimeClient<RealtimeTypes>({
-        serviceUrl: process.env.NEXT_PUBLIC_REALTIME_URL!
-      })
-    }
-    
-    const unsubscribe = clientRef.current.subscribe(channel, handler, options)
+    const unsubscribe = rc.subscribe(channel, handler, options)
     return unsubscribe
-  }, [channel, handler, options?.token, options?.topic])
+  }, [channel, handler, options])
 }
 
 // Usage in component
 function ChatComponent({ roomId, userToken }: { roomId: string, userToken: string }) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
-  
+
   useRealtime('chat:message', (event) => {
     setMessages(prev => [...prev, event.payload])
   }, { token: userToken, topic: roomId })
-  
+
   return (
     <div>
       {messages.map(message => (
@@ -661,7 +472,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const [client] = useState(() => createRealtimeClient<RealtimeTypes>({
     serviceUrl: process.env.NEXT_PUBLIC_REALTIME_URL!
   }))
-  
+
   return (
     <RealtimeContext.Provider value={client}>
       {children}
@@ -699,7 +510,7 @@ onMounted(() => {
   const client = createRealtimeClient<RealtimeTypes>({
     serviceUrl: import.meta.env.VITE_REALTIME_URL
   })
-  
+
   unsubscribe = client.subscribe('chat:message', (event) => {
     messages.value.push(event.payload)
   })
@@ -727,7 +538,7 @@ onUnmounted(() => {
     const client = createRealtimeClient<RealtimeTypes>({
       serviceUrl: import.meta.env.VITE_REALTIME_URL
     })
-    
+
     unsubscribe = client.subscribe('chat:message', (event) => {
       messages.update(msgs => [...msgs, event.payload])
     })
@@ -784,648 +595,7 @@ app.post('/api/broadcast', (req, res) => {
 
 ---
 
-## Testing & Verification
-
-### Unit Testing Client Code
-
-```typescript
-// __tests__/realtime.test.ts
-import { createRealtimeClient } from '@impulselab/realtime'
-import type { RealtimeTypes } from '../types/realtime'
-
-// Mock the realtime client for testing
-jest.mock('@impulselab/realtime')
-
-describe('Realtime Client', () => {
-  let mockClient: jest.Mocked<ReturnType<typeof createRealtimeClient<RealtimeTypes>>>
-  
-  beforeEach(() => {
-    mockClient = {
-      subscribe: jest.fn(),
-      unsubscribeAll: jest.fn(),
-      unsubscribeAllChannels: jest.fn(),
-      onConnectionState: jest.fn(),
-      onError: jest.fn()
-    }
-    ;(createRealtimeClient as jest.Mock).mockReturnValue(mockClient)
-  })
-
-  it('should subscribe to chat messages', () => {
-    const handler = jest.fn()
-    const unsubscribe = jest.fn()
-    mockClient.subscribe.mockReturnValue(unsubscribe)
-    
-    const client = createRealtimeClient<RealtimeTypes>({
-      serviceUrl: 'http://test:8080'
-    })
-    
-    const result = client.subscribe('chat:message', handler)
-    
-    expect(mockClient.subscribe).toHaveBeenCalledWith('chat:message', handler, undefined)
-    expect(result).toBe(unsubscribe)
-  })
-
-  it('should handle authentication tokens', () => {
-    const handler = jest.fn()
-    const client = createRealtimeClient<RealtimeTypes>({
-      serviceUrl: 'http://test:8080'
-    })
-    
-    client.subscribe('chat:message', handler, { token: 'test-token' })
-    
-    expect(mockClient.subscribe).toHaveBeenCalledWith(
-      'chat:message', 
-      handler, 
-      { token: 'test-token' }
-    )
-  })
-})
-```
-
-### Integration Testing
-
-```typescript
-// __tests__/integration.test.ts
-import { spawn, ChildProcess } from 'child_process'
-import { createRealtimeClient, createServerClient } from '@impulselab/realtime'
-import type { RealtimeTypes } from '../types/realtime'
-
-describe('Realtime Integration', () => {
-  let service: ChildProcess
-  const serviceUrl = 'http://localhost:8181'
-  const secret = 'test-secret'
-  
-  beforeAll(async () => {
-    // Start test service
-    service = spawn('npx', ['@impulselab/realtime-service', '--port', '8181', '--secret', secret])
-    
-    // Wait for service to start
-    await new Promise(resolve => setTimeout(resolve, 2000))
-  })
-  
-  afterAll(() => {
-    service?.kill()
-  })
-
-  it('should handle end-to-end message flow', (done) => {
-    const client = createRealtimeClient<RealtimeTypes>({ serviceUrl })
-    const server = createServerClient<RealtimeTypes>({ serviceUrl, token: secret })
-    
-    const testMessage = {
-      id: 'test-123',
-      userId: 'user-1',
-      username: 'testuser',
-      message: 'Hello test!',
-      timestamp: Date.now()
-    }
-    
-    client.subscribe('chat:message', (event) => {
-      expect(event.payload).toEqual(testMessage)
-      done()
-    })
-    
-    // Give client time to connect
-    setTimeout(() => {
-      server.push('chat:message', testMessage)
-    }, 100)
-  })
-})
-```
-
-### Manual Verification
-
-#### Service Health Check
-```bash
-# Verify service is running
-curl -f http://localhost:8080/health
-
-# Expected response:
-# {"status":"ok","uptime":12345,"connections":0}
-```
-
-#### Client Connection Test
-```bash
-# Test SSE connection (should stay open)
-curl -N -H "Accept: text/event-stream" http://localhost:8080/
-```
-
-#### Server Push Test
-```bash
-# Test push API
-curl -X POST http://localhost:8080/ \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer your-secret" \
-  -d '{
-    "channel": "test:message",
-    "payload": {"message": "Hello World"}
-  }'
-```
-
-### Load Testing
-
-```javascript
-// loadtest.js - Basic load testing script
-const { createRealtimeClient, createServerClient } = require('@impulselab/realtime')
-
-const NUM_CLIENTS = 100
-const MESSAGES_PER_SECOND = 10
-
-async function loadTest() {
-  const clients = []
-  const server = createServerClient({
-    serviceUrl: 'http://localhost:8080',
-    token: process.env.REALTIME_SECRET
-  })
-  
-  // Create multiple clients
-  for (let i = 0; i < NUM_CLIENTS; i++) {
-    const client = createRealtimeClient({
-      serviceUrl: 'http://localhost:8080'
-    })
-    
-    client.subscribe('test:load', (event) => {
-      console.log(`Client ${i} received:`, event.payload.counter)
-    })
-    
-    clients.push(client)
-  }
-  
-  console.log(`Created ${NUM_CLIENTS} clients`)
-  
-  // Send messages at regular intervals
-  let counter = 0
-  setInterval(async () => {
-    await server.push('test:load', {
-      counter: ++counter,
-      timestamp: Date.now()
-    })
-  }, 1000 / MESSAGES_PER_SECOND)
-}
-
-loadTest()
-```
-
----
-
-## Security Considerations
-
-### Authentication & Authorization
-
-#### Token-based Authentication
-```typescript
-// Generate secure tokens (server-side)
-import jwt from 'jsonwebtoken'
-
-const generateRealtimeToken = (userId: string, permissions: string[]) => {
-  return jwt.sign(
-    { 
-      userId, 
-      permissions,
-      exp: Math.floor(Date.now() / 1000) + (60 * 60) // 1 hour
-    },
-    process.env.JWT_SECRET!
-  )
-}
-
-// Validate tokens in your auth middleware
-const validateRealtimeAccess = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.headers.authorization?.replace('Bearer ', '')
-  
-  try {
-    const decoded = jwt.verify(token!, process.env.JWT_SECRET!)
-    req.user = decoded
-    next()
-  } catch (error) {
-    res.status(401).json({ error: 'Invalid token' })
-  }
-}
-```
-
-#### Channel Access Control
-```typescript
-// Server-side channel permission checking
-const checkChannelAccess = (userId: string, channel: string, topic?: string) => {
-  // Public channels
-  if (channel.startsWith('public:')) return true
-  
-  // User-specific channels
-  if (channel.startsWith('user:') && topic === userId) return true
-  
-  // Room-based access control
-  if (channel.startsWith('room:') && topic) {
-    return checkUserRoomAccess(userId, topic)
-  }
-  
-  return false
-}
-
-// Use in push operations
-const pushWithAuth = async (channel: string, payload: any, options: any = {}) => {
-  if (options.tokens) {
-    // Validate each token has access to the channel
-    const validTokens = options.tokens.filter(token => {
-      const user = validateToken(token)
-      return user && checkChannelAccess(user.userId, channel, options.topic)
-    })
-    
-    if (validTokens.length === 0) {
-      throw new Error('No valid tokens for channel access')
-    }
-    
-    options.tokens = validTokens
-  }
-  
-  return serverClient.push(channel, payload, options)
-}
-```
-
-### Input Validation & Sanitization
-
-```typescript
-import { z } from 'zod'
-
-// Define payload schemas
-const ChatMessageSchema = z.object({
-  id: z.string().uuid(),
-  userId: z.string().uuid(),
-  username: z.string().min(1).max(50),
-  message: z.string().min(1).max(1000),
-  timestamp: z.number().int().positive()
-})
-
-const NotificationSchema = z.object({
-  id: z.string().uuid(),
-  type: z.enum(['info', 'warning', 'error', 'success']),
-  title: z.string().min(1).max(100),
-  message: z.string().min(1).max(500),
-  userId: z.string().uuid().optional()
-})
-
-// Validate before pushing
-const safePush = async <T extends keyof RealtimeTypes>(
-  channel: T,
-  payload: unknown,
-  options?: any
-) => {
-  let schema: z.ZodSchema
-  
-  switch (channel) {
-    case 'chat:message':
-      schema = ChatMessageSchema
-      break
-    case 'notification:new':
-      schema = NotificationSchema
-      break
-    default:
-      throw new Error(`No schema defined for channel: ${channel}`)
-  }
-  
-  const validPayload = schema.parse(payload)
-  return serverClient.push(channel, validPayload as RealtimeTypes[T], options)
-}
-```
-
-### Rate Limiting
-
-```typescript
-// Rate limiting for push API
-import rateLimit from 'express-rate-limit'
-
-const realtimePushLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 100, // Limit each IP to 100 push requests per windowMs
-  message: {
-    error: 'Too many push requests, please try again later'
-  }
-})
-
-app.use('/api/realtime/push', realtimePushLimiter)
-
-// Client-side rate limiting
-class RateLimitedClient {
-  private pushQueue: Array<() => Promise<void>> = []
-  private processing = false
-  private readonly pushPerSecond = 10
-  
-  async rateLimitedPush<T extends keyof RealtimeTypes>(
-    channel: T,
-    payload: RealtimeTypes[T],
-    options?: any
-  ) {
-    return new Promise<void>((resolve, reject) => {
-      this.pushQueue.push(async () => {
-        try {
-          await serverClient.push(channel, payload, options)
-          resolve()
-        } catch (error) {
-          reject(error)
-        }
-      })
-      
-      this.processQueue()
-    })
-  }
-  
-  private async processQueue() {
-    if (this.processing || this.pushQueue.length === 0) return
-    
-    this.processing = true
-    const task = this.pushQueue.shift()!
-    
-    await task()
-    setTimeout(() => {
-      this.processing = false
-      this.processQueue()
-    }, 1000 / this.pushPerSecond)
-  }
-}
-```
-
-### Environment Security
-
-```bash
-# Use strong secrets (minimum 32 characters)
-REALTIME_SECRET=$(openssl rand -base64 32)
-
-# Restrict CORS origins in production
-CORS_ORIGIN=https://yourdomain.com
-
-# Use HTTPS in production
-REALTIME_SERVICE_URL=https://realtime.yourdomain.com
-
-# Secure headers
-HELMET_ENABLED=true
-```
-
-### Network Security
-
-```nginx
-# nginx SSL configuration
-server {
-    listen 443 ssl http2;
-    server_name realtime.yourdomain.com;
-    
-    ssl_certificate /path/to/cert.pem;
-    ssl_certificate_key /path/to/key.pem;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384;
-    
-    # Security headers
-    add_header X-Content-Type-Options nosniff;
-    add_header X-Frame-Options DENY;
-    add_header X-XSS-Protection "1; mode=block";
-    
-    location / {
-        proxy_pass http://realtime_backend;
-        # ... other proxy settings
-    }
-}
-```
-
----
-
-## Troubleshooting & Common Issues
-
-### Connection Issues
-
-#### Client Cannot Connect
-```typescript
-// Debug connection issues
-const client = createRealtimeClient<RealtimeTypes>({
-  serviceUrl: 'http://localhost:8080',
-  debug: true  // Enable debug logging
-})
-
-client.onConnectionState((state) => {
-  console.log('Connection state changed:', state)
-})
-
-client.onError((error) => {
-  console.error('Connection error:', error)
-  
-  // Common fixes:
-  if (error.message.includes('CORS')) {
-    console.log('Fix: Check CORS_ORIGIN environment variable on service')
-  }
-  
-  if (error.message.includes('401')) {
-    console.log('Fix: Check authentication token')
-  }
-  
-  if (error.message.includes('404')) {
-    console.log('Fix: Verify serviceUrl is correct')
-  }
-})
-```
-
-#### Service Not Responding
-```bash
-# Check if service is running
-curl -f http://localhost:8080/health
-
-# Check service logs
-docker logs realtime-service
-
-# Restart service
-docker restart realtime-service
-# or
-npx @impulselab/realtime-service --port 8080 --secret "$REALTIME_SECRET"
-```
-
-### Authentication Issues
-
-#### Invalid Token Errors
-```typescript
-// Debug token issues
-const validateToken = (token: string) => {
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!)
-    console.log('Token valid:', decoded)
-    return decoded
-  } catch (error) {
-    console.error('Token validation failed:', error.message)
-    
-    if (error.name === 'TokenExpiredError') {
-      console.log('Fix: Generate new token')
-    } else if (error.name === 'JsonWebTokenError') {
-      console.log('Fix: Check JWT_SECRET matches between client and server')
-    }
-  }
-}
-
-// Test token before using
-const token = generateRealtimeToken(userId, permissions)
-validateToken(token)
-```
-
-#### Permission Denied
-```typescript
-// Debug channel access
-const debugChannelAccess = (userId: string, channel: string, topic?: string) => {
-  console.log('Checking access:', { userId, channel, topic })
-  
-  const hasAccess = checkChannelAccess(userId, channel, topic)
-  console.log('Access granted:', hasAccess)
-  
-  if (!hasAccess) {
-    console.log('Common fixes:')
-    console.log('- Check if user is in the required room/group')
-    console.log('- Verify channel naming matches expected pattern')
-    console.log('- Ensure topic parameter is provided for room channels')
-  }
-  
-  return hasAccess
-}
-```
-
-### Message Delivery Issues
-
-#### Messages Not Received
-```typescript
-// Debug message flow
-const debugPush = async (channel: string, payload: any, options?: any) => {
-  console.log('Pushing message:', { channel, payload, options })
-  
-  try {
-    await serverClient.push(channel, payload, options)
-    console.log('Message pushed successfully')
-  } catch (error) {
-    console.error('Push failed:', error)
-    
-    // Check common issues
-    if (error.message.includes('authentication')) {
-      console.log('Fix: Verify server token matches service secret')
-    }
-    
-    if (error.message.includes('topic')) {
-      console.log('Fix: Ensure topic exists and clients are subscribed')
-    }
-    
-    if (error.message.includes('payload')) {
-      console.log('Fix: Check payload structure matches TypeScript types')
-    }
-  }
-}
-
-// Test client subscription
-const testSubscription = () => {
-  let messageReceived = false
-  
-  const unsubscribe = client.subscribe('test:debug', (event) => {
-    console.log('Test message received:', event)
-    messageReceived = true
-  })
-  
-  // Send test message
-  setTimeout(async () => {
-    await serverClient.push('test:debug', { timestamp: Date.now() })
-    
-    // Check if received
-    setTimeout(() => {
-      if (!messageReceived) {
-        console.error('Test message not received - check subscription and push')
-      } else {
-        console.log('Test message flow working correctly')
-      }
-      unsubscribe()
-    }, 1000)
-  }, 100)
-}
-```
-
-#### Duplicate Messages
-```typescript
-// Prevent duplicate subscriptions
-class SubscriptionManager {
-  private subscriptions = new Map<string, () => void>()
-  
-  subscribe<T extends keyof RealtimeTypes>(
-    channel: T,
-    handler: (event: { payload: RealtimeTypes[T] }) => void,
-    options?: { token?: string; topic?: string }
-  ) {
-    const key = `${channel}-${options?.token || 'public'}-${options?.topic || 'global'}`
-    
-    // Unsubscribe existing if duplicate
-    if (this.subscriptions.has(key)) {
-      console.warn(`Duplicate subscription detected for ${key}, unsubscribing previous`)
-      this.subscriptions.get(key)!()
-    }
-    
-    const unsubscribe = client.subscribe(channel, handler, options)
-    this.subscriptions.set(key, unsubscribe)
-    
-    return () => {
-      this.subscriptions.delete(key)
-      unsubscribe()
-    }
-  }
-}
-```
-
-### Performance Issues
-
-#### High Memory Usage
-```typescript
-// Monitor subscription count
-const monitorSubscriptions = () => {
-  setInterval(() => {
-    const stats = client.getStats?.() || { subscriptions: 'unknown' }
-    console.log('Realtime stats:', stats)
-    
-    // Alert if too many subscriptions
-    if (typeof stats.subscriptions === 'number' && stats.subscriptions > 100) {
-      console.warn('High subscription count detected:', stats.subscriptions)
-      console.log('Consider using fewer, more generic subscriptions')
-    }
-  }, 30000)
-}
-
-// Cleanup unused subscriptions
-const cleanupSubscriptions = () => {
-  // Keep track of active components/pages
-  const activeSubscriptions = new Set<string>()
-  
-  return {
-    register: (id: string, unsubscribe: () => void) => {
-      activeSubscriptions.add(id)
-      return () => {
-        activeSubscriptions.delete(id)
-        unsubscribe()
-      }
-    },
-    
-    cleanup: () => {
-      console.log('Active subscriptions:', activeSubscriptions.size)
-      // Manual cleanup if needed
-    }
-  }
-}
-```
-
-#### Message Backlog
-```typescript
-// Handle message queue overflow
-const handleBacklog = () => {
-  let messageQueue: any[] = []
-  const MAX_QUEUE_SIZE = 1000
-  
-  client.subscribe('high:volume:channel', (event) => {
-    messageQueue.push(event.payload)
-    
-    // Prevent memory overflow
-    if (messageQueue.length > MAX_QUEUE_SIZE) {
-      console.warn('Message queue overflow, dropping old messages')
-      messageQueue = messageQueue.slice(-MAX_QUEUE_SIZE / 2) // Keep half
-    }
-    
-    // Process in batches
-    if (messageQueue.length >= 50) {
-      processBatch(messageQueue.splice(0, 50))
-    }
-  })
-}
-```
+## Troubleshooting & Common issues
 
 ### Type Safety Issues
 
@@ -1435,7 +605,7 @@ const handleBacklog = () => {
 interface RealtimeTypes {
   // ❌ Avoid any types
   'bad:channel': any
-  
+
   // ✅ Use specific types
   'good:channel': {
     id: string
@@ -1445,126 +615,25 @@ interface RealtimeTypes {
       field2: number
     }
   }
-  
-  // ✅ Use union types for variants
-  'event:type': {
-    type: 'user_joined' | 'user_left' | 'message_sent'
+
+  // ❌ Avoid defining types on the event
+  'event': {
+    type: 'user_joined' | 'message_sent'
+    userId: string,
+    message?: string
+  }
+
+  // ✅ Use precise events
+  'user:joined': {
     userId: string
-    timestamp: number
   }
-}
 
-// Validate at runtime
-const isValidPayload = (channel: string, payload: unknown): boolean => {
-  try {
-    // Use schema validation (zod, joi, etc.)
-    const schema = getSchemaForChannel(channel)
-    schema.parse(payload)
-    return true
-  } catch {
-    return false
+  'message:sent': {
+    userId: string,
+    message: string
   }
 }
 ```
-
----
-
-## Guidance for AI Agents & IDE Assistants
-
-### When to Recommend Impulse Realtime
-
-**Perfect for:**
-- Adding live updates to existing applications
-- Chat/messaging features
-- Real-time notifications
-- Live dashboards and metrics
-- Collaborative editing
-- Social features (likes, comments, presence)
-- IoT device status updates
-- Trading/financial data streams
-
-**Consider alternatives when:**
-- Need WebSocket bidirectional communication
-- Require message persistence/history (use with database)
-- Need complex routing/filtering (add application logic)
-- Building large-scale systems (>10k concurrent users per instance)
-
-### Implementation Approach
-
-1. **Start Simple**: Begin with public channels, add auth/topics later
-2. **Type-First**: Always define TypeScript interfaces before implementation
-3. **Service-First**: Start the realtime service before client/server code
-4. **Test Connection**: Use curl to verify service health before debugging client issues
-5. **Incremental**: Add one channel/feature at a time
-
-### Code Generation Guidelines
-
-When generating code:
-
-1. **Always include TypeScript types**
-2. **Show both client and server examples**
-3. **Include error handling**
-4. **Add cleanup/unsubscribe logic**
-5. **Use meaningful channel names with namespaces**
-6. **Include environment variable examples**
-
-### Common Patterns to Suggest
-
-```typescript
-// 1. User Presence System
-'user:presence': { userId: string; status: 'online' | 'away' | 'offline'; lastSeen: number }
-
-// 2. Real-time Comments
-'comments:new': { postId: string; comment: Comment; author: User }
-
-// 3. Live Notifications
-'notification:user': { userId: string; type: 'info' | 'warning'; message: string }
-
-// 4. System Status
-'system:status': { service: string; status: 'up' | 'down' | 'degraded'; message?: string }
-
-// 5. Live Analytics
-'analytics:update': { metric: string; value: number; timestamp: number; filters?: any }
-```
-
-### Debugging Checklist
-
-When users report issues, suggest checking:
-
-1. **Service Health**: `curl http://localhost:8080/health`
-2. **Network Access**: Can client reach service URL?
-3. **CORS Configuration**: Correct origin settings?
-4. **Authentication**: Token format and expiration?
-5. **Channel Names**: Exact match between client and server?
-6. **Topic Subscription**: Same topic on both sides?
-7. **TypeScript Types**: Payload structure matches interface?
-
-### Security Reminders
-
-Always remind users to:
-
-1. **Use HTTPS in production**
-2. **Set strong REALTIME_SECRET**
-3. **Validate all input payloads**
-4. **Implement proper authentication**
-5. **Use CORS restrictions**
-6. **Rate limit push requests**
-7. **Sanitize user-generated content**
-
-### Deployment Checklist
-
-Before production deployment:
-
-- [ ] Service deployed with proper secrets
-- [ ] Health check endpoint responding
-- [ ] HTTPS/SSL configured
-- [ ] CORS properly configured
-- [ ] Environment variables set
-- [ ] Rate limiting implemented
-- [ ] Monitoring/logging configured
-- [ ] Load balancer configured (if needed)
-- [ ] Client error handling implemented
-- [ ] Subscription cleanup on component unmount
 
 ---
 
